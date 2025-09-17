@@ -100,7 +100,7 @@ router.get('/calendar/group/:groupId/:year/:month', async (req: Request, res: Re
 
     // Calcular el rango de fechas del mes
     const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+    const endDate = new Date(parseInt(year), parseInt(month) - 1 + 1, 0, 23, 59, 59);
 
     const tasks = await Task.findAll({
       where: {
@@ -152,7 +152,7 @@ router.get('/calendar/:grade/:year/:month', async (req: Request, res: Response) 
 
     // Calcular el rango de fechas del mes
     const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+    const endDate = new Date(parseInt(year), parseInt(month) - 1 + 1, 0, 23, 59, 59);
 
     // Obtener todos los grupos del grado especificado
     const gradeNumber = parseInt(grade);

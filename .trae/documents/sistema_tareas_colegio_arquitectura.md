@@ -25,43 +25,49 @@ graph TD
 
 ## 2. Descripción de Tecnologías
 
-- Frontend: React@18 + TypeScript + Vite + TailwindCSS + Sonner + SweetAlert2
-- Backend: Express@4 + TypeScript + Sequelize + JWT + bcrypt
-- Base de Datos: MySQL 8.0
+* Frontend: React\@18 + TypeScript + Vite + TailwindCSS + Sonner + SweetAlert2
+
+* Backend: Express\@4 + TypeScript + Sequelize + JWT + bcrypt
+
+* Base de Datos: MySQL 8.0
 
 ## 3. Definiciones de Rutas
 
-| Ruta | Propósito |
-|------|----------|
-| / | Página principal, redirige al login si no está autenticado |
-| /login | Página de login para autenticación de usuarios |
-| /dashboard/coordinator | Dashboard del coordinador con funciones administrativas |
-| /dashboard/teacher | Dashboard del profesor con acceso a sus grupos |
-| /profile | Página de perfil del usuario (futura implementación) |
+| Ruta                   | Propósito                                                  |
+| ---------------------- | ---------------------------------------------------------- |
+| /                      | Página principal, redirige al login si no está autenticado |
+| /login                 | Página de login para autenticación de usuarios             |
+| /dashboard/coordinator | Dashboard del coordinador con funciones administrativas    |
+| /dashboard/teacher     | Dashboard del profesor con acceso a sus grupos             |
+| /profile               | Página de perfil del usuario (futura implementación)       |
 
 ## 4. Definiciones de API
 
 ### 4.1 API Principal
 
 **Autenticación de usuarios**
+
 ```
 POST /api/auth/login
 ```
 
 Request:
-| Nombre del Parámetro | Tipo del Parámetro | Es Requerido | Descripción |
-|---------------------|-------------------|--------------|-------------|
-| email | string | true | Email del usuario |
-| password | string | true | Contraseña del usuario |
+
+| Nombre del Parámetro | Tipo del Parámetro | Es Requerido | Descripción            |
+| -------------------- | ------------------ | ------------ | ---------------------- |
+| email                | string             | true         | Email del usuario      |
+| password             | string             | true         | Contraseña del usuario |
 
 Response:
-| Nombre del Parámetro | Tipo del Parámetro | Descripción |
-|---------------------|-------------------|-------------|
-| success | boolean | Estado de la respuesta |
-| token | string | Token JWT para autenticación |
-| user | object | Información del usuario autenticado |
+
+| Nombre del Parámetro | Tipo del Parámetro | Descripción                         |
+| -------------------- | ------------------ | ----------------------------------- |
+| success              | boolean            | Estado de la respuesta              |
+| token                | string             | Token JWT para autenticación        |
+| user                 | object             | Información del usuario autenticado |
 
 Ejemplo:
+
 ```json
 {
   "email": "coordinador@colegio.edu",
@@ -70,40 +76,46 @@ Ejemplo:
 ```
 
 **Obtener información del usuario autenticado**
+
 ```
 GET /api/auth/me
 ```
 
 Response:
-| Nombre del Parámetro | Tipo del Parámetro | Descripción |
-|---------------------|-------------------|-------------|
-| success | boolean | Estado de la respuesta |
-| user | object | Información completa del usuario |
+
+| Nombre del Parámetro | Tipo del Parámetro | Descripción                      |
+| -------------------- | ------------------ | -------------------------------- |
+| success              | boolean            | Estado de la respuesta           |
+| user                 | object             | Información completa del usuario |
 
 **Obtener datos del dashboard del coordinador**
+
 ```
 GET /api/dashboard/coordinator
 ```
 
 Response:
-| Nombre del Parámetro | Tipo del Parámetro | Descripción |
-|---------------------|-------------------|-------------|
-| totalUsers | number | Total de usuarios registrados |
-| totalSubjects | number | Total de materias |
-| totalGroups | number | Total de grupos |
-| recentActivities | array | Actividades recientes del sistema |
+
+| Nombre del Parámetro | Tipo del Parámetro | Descripción                       |
+| -------------------- | ------------------ | --------------------------------- |
+| totalUsers           | number             | Total de usuarios registrados     |
+| totalSubjects        | number             | Total de materias                 |
+| totalGroups          | number             | Total de grupos                   |
+| recentActivities     | array              | Actividades recientes del sistema |
 
 **Obtener datos del dashboard del profesor**
+
 ```
 GET /api/dashboard/teacher
 ```
 
 Response:
-| Nombre del Parámetro | Tipo del Parámetro | Descripción |
-|---------------------|-------------------|-------------|
-| assignedGroups | array | Grupos asignados al profesor |
-| totalTasks | number | Total de tareas creadas |
-| subjects | array | Materias que enseña el profesor |
+
+| Nombre del Parámetro | Tipo del Parámetro | Descripción                     |
+| -------------------- | ------------------ | ------------------------------- |
+| assignedGroups       | array              | Grupos asignados al profesor    |
+| totalTasks           | number             | Total de tareas creadas         |
+| subjects             | array              | Materias que enseña el profesor |
 
 ## 5. Diagrama de Arquitectura del Servidor
 
@@ -183,6 +195,7 @@ erDiagram
 ### 6.2 Lenguaje de Definición de Datos
 
 **Tabla de Usuarios (users)**
+
 ```sql
 -- crear tabla
 CREATE TABLE users (
@@ -206,6 +219,7 @@ INSERT INTO users (email, password_hash, name, role) VALUES
 ```
 
 **Tabla de Materias (subjects)**
+
 ```sql
 -- crear tabla
 CREATE TABLE subjects (
@@ -227,6 +241,7 @@ INSERT INTO subjects (name, description) VALUES
 ```
 
 **Tabla de Grupos (groups)**
+
 ```sql
 -- crear tabla
 CREATE TABLE groups (
@@ -249,7 +264,8 @@ INSERT INTO groups (name, grade) VALUES
 ('10-2', '10');
 ```
 
-**Tabla de Asignaciones de Materias (subject_assignments)**
+**Tabla de Asignaciones de Materias (subject\_assignments)**
+
 ```sql
 -- crear tabla
 CREATE TABLE subject_assignments (
@@ -272,6 +288,7 @@ CREATE INDEX idx_subject_assignments_subject ON subject_assignments(subject_id);
 ```
 
 **Tabla de Tareas (tasks)**
+
 ```sql
 -- crear tabla
 CREATE TABLE tasks (
@@ -293,3 +310,4 @@ CREATE INDEX idx_tasks_group ON tasks(group_id);
 CREATE INDEX idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX idx_tasks_created_at ON tasks(created_at DESC);
 ```
+

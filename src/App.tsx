@@ -35,7 +35,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             
             {/* Ruta pública del calendario */}
-            <Route path="/calendario-actividades" element={<PublicCalendarPage />} />
+            <Route path="/calendario-publico" element={<PublicCalendarPage />} />
             
             {/* Ruta raíz que redirige según el rol */}
             <Route path="/" element={<DashboardRedirect />} />
