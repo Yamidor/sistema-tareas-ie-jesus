@@ -70,10 +70,11 @@ router.post('/',
         });
       }
 
-      // VALIDACIÓN CRÍTICA: Verificar que el grupo no tenga ya una asignación activa
+      // VALIDACIÓN CRÍTICA: Verificar que el grupo no tenga ya un profesor asignado para esta materia específica
       const existingAssignment = await SubjectAssignment.findOne({
         where: {
           groupId,
+          subjectId,
           isActive: true
         }
       });
@@ -81,7 +82,7 @@ router.post('/',
       if (existingAssignment) {
         return res.status(409).json({
           success: false,
-          message: 'Este grupo ya tiene un profesor asignado. Un grupo solo puede tener un profesor.'
+          message: 'Este grupo ya tiene un profesor asignado para esta materia. Un grupo solo puede tener un profesor por materia.'
         });
       }
 
@@ -269,34 +270,47 @@ router.get('/by-teacher/:teacherId',
 );
 
 /**
- * Obtener grupos disponibles para asignación
- * Solo grupos que NO tienen asignación activa
+ * Obtener grupos disponibles para asignación de una materia específica
+ * Solo grupos que NO tienen asignación activa para la materia especificada
  */
 router.get('/groups/available', 
   authenticateToken, 
   requireRole(['coordinator']), 
   async (req: AuthRequest, res: Response) => {
     try {
-      const { academicYear } = req.query;
+      const { academicYear, subjectId } = req.query;
 
-      // Obtener IDs de grupos que ya tienen asignación activa
+      if (!subjectId) {
+        return res.status(400).json({
+          success: false,
+          message: 'El parámetro subjectId es requerido'
+        });
+      }
+
+      // Obtener IDs de grupos que ya tienen asignación activa para esta materia específica
       const assignedGroupIds = await SubjectAssignment.findAll({
         where: {
           isActive: true,
+          subjectId,
           ...(academicYear && { academicYear })
         },
         attributes: ['groupId'],
         raw: true
       }).then(assignments => assignments.map(a => a.groupId));
 
-      // Obtener grupos disponibles (que no están en la lista de asignados)
+      // Obtener grupos disponibles (que no están asignados a esta materia)
+      const whereConditions: any = {
+        isActive: true
+      };
+
+      if (assignedGroupIds.length > 0) {
+        whereConditions.id = {
+          [Op.notIn]: assignedGroupIds
+        };
+      }
+
       const availableGroups = await Group.findAll({
-        where: {
-          isActive: true,
-          id: {
-            [Op.notIn]: assignedGroupIds
-          }
-        },
+        where: whereConditions,
         attributes: ['id', 'name', 'grade', 'section', 'academicYear', 'studentCount'],
         order: [['grade', 'ASC'], ['section', 'ASC']]
       });

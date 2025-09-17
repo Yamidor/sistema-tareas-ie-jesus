@@ -881,10 +881,15 @@ const CoordinatorDashboard: React.FC = () => {
     }
   };
 
-  const fetchAvailableGroups = async () => {
+  const fetchAvailableGroups = async (subjectId?: number) => {
     try {
+      if (!subjectId) {
+        setAvailableGroups([]);
+        return;
+      }
+
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/assignments/groups/available', {
+      const response = await fetch(`/api/assignments/groups/available?subjectId=${subjectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -899,6 +904,7 @@ const CoordinatorDashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching available groups:', error);
+      setAvailableGroups([]);
     }
   };
 
@@ -925,17 +931,8 @@ const CoordinatorDashboard: React.FC = () => {
 
   const handleCreateAssignment = async () => {
     // Ensure we have fresh data
-    await Promise.all([fetchTeachers(), fetchAvailableGroups()]);
+    await fetchTeachers();
     
-    if (availableGroups.length === 0) {
-      await Swal.fire({
-        title: 'Sin grupos disponibles',
-        text: 'No hay grupos disponibles para asignar. Todos los grupos ya tienen un profesor asignado.',
-        icon: 'warning'
-      });
-      return;
-    }
-
     if (teachers.length === 0) {
       await Swal.fire({
         title: 'Sin profesores disponibles',
@@ -974,9 +971,8 @@ const CoordinatorDashboard: React.FC = () => {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Grupo Disponible *</label>
-            <select id="groupId" class="swal2-select" style="margin: 0; width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
-              <option value="">Seleccionar grupo...</option>
-              ${availableGroups.map(group => `<option value="${group.id}">${group.name} - ${group.grade}° ${group.section} (${group.academicYear})</option>`).join('')}
+            <select id="groupId" class="swal2-select" style="margin: 0; width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;" disabled>
+              <option value="">Primero seleccione una materia...</option>
             </select>
           </div>
           <div>
@@ -986,8 +982,9 @@ const CoordinatorDashboard: React.FC = () => {
           <div class="mt-4 p-3 bg-blue-50 rounded-md">
             <p class="text-sm text-blue-800">
               <strong>Reglas de asignación:</strong><br>
-              • Solo se muestran grupos sin profesor asignado<br>
-              • Dos profesores pueden enseñar la misma materia en diferentes grupos<br>
+              • Los grupos se cargan según la materia seleccionada<br>
+              • Solo se muestran grupos sin profesor para esa materia específica<br>
+              • Un grupo puede tener múltiples profesores de diferentes materias<br>
               • Un grupo solo puede tener un profesor por materia
             </p>
           </div>
@@ -1000,6 +997,50 @@ const CoordinatorDashboard: React.FC = () => {
       width: '600px',
       customClass: {
         popup: 'text-left'
+      },
+      didOpen: () => {
+        const subjectSelect = document.getElementById('subjectId') as HTMLSelectElement;
+        const groupSelect = document.getElementById('groupId') as HTMLSelectElement;
+        
+        subjectSelect.addEventListener('change', async () => {
+          const subjectId = parseInt(subjectSelect.value);
+          
+          if (subjectId) {
+            groupSelect.disabled = true;
+            groupSelect.innerHTML = '<option value="">Cargando grupos...</option>';
+            
+            try {
+              const token = localStorage.getItem('token');
+              const response = await fetch(`/api/assignments/groups/available?subjectId=${subjectId}`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                  const groups = data.data || [];
+                  
+                  if (groups.length === 0) {
+                    groupSelect.innerHTML = '<option value="">No hay grupos disponibles para esta materia</option>';
+                  } else {
+                    groupSelect.innerHTML = '<option value="">Seleccionar grupo...</option>' +
+                      groups.map((group: any) => `<option value="${group.id}">${group.name} - ${group.grade}° ${group.section} (${group.academicYear})</option>`).join('');
+                  }
+                  groupSelect.disabled = false;
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching groups:', error);
+              groupSelect.innerHTML = '<option value="">Error al cargar grupos</option>';
+            }
+          } else {
+            groupSelect.innerHTML = '<option value="">Primero seleccione una materia...</option>';
+            groupSelect.disabled = true;
+          }
+        });
       },
       preConfirm: () => {
         const teacherId = (document.getElementById('teacherId') as HTMLSelectElement).value;
@@ -1038,11 +1079,8 @@ const CoordinatorDashboard: React.FC = () => {
             timer: 2000,
             showConfirmButton: false
           });
-          // Refresh all related data
-          await Promise.all([
-            fetchAssignments(),
-            fetchAvailableGroups()
-          ]);
+          // Refresh assignments data
+          await fetchAssignments();
         } else {
           await Swal.fire({
             title: 'Error al crear asignación',
