@@ -99,8 +99,8 @@ const PublicCalendar: React.FC<PublicCalendarProps> = ({ onTaskClick }) => {
   const getTasksForDay = (day: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return tasks.filter(task => {
-      const taskDate = new Date(task.dueDate);
-      const taskDateStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}-${String(taskDate.getDate()).padStart(2, '0')}`;
+      // Extraer fecha sin conversiones de zona horaria
+      const taskDateStr = task.dueDate.split('T')[0];
       return taskDateStr === dateStr;
     });
   };
