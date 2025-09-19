@@ -34,7 +34,13 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
   if (!isOpen || !task) return null;
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Extraer fecha sin conversiones de zona horaria
+    const datePart = dateString.split('T')[0]; // Obtener solo YYYY-MM-DD
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Crear fecha usando los componentes directamente para evitar problemas de zona horaria
+    const date = new Date(year, month - 1, day);
+    
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -50,7 +56,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const dueDate = new Date(task.dueDate);
+    // Extraer fecha sin conversiones de zona horaria
+    const datePart = task.dueDate.split('T')[0]; // Obtener solo YYYY-MM-DD
+    const [year, month, day] = datePart.split('-').map(Number);
+    
+    // Crear fecha usando los componentes directamente para evitar problemas de zona horaria
+    const dueDate = new Date(year, month - 1, day);
     dueDate.setHours(0, 0, 0, 0);
     
     const diffTime = dueDate.getTime() - today.getTime();
